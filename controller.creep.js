@@ -2,7 +2,7 @@ const worker = require('creep.worker');
 
 class CreepController {
     constructor() {
-        //this.testClaim('E42S6');
+        this.testClaim('E42S6');
     }
     
     run(roomName) {
@@ -43,7 +43,7 @@ class CreepController {
         const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
         
         if(f[0]) {
-            this.moveToTarget(c[0], f[0].pos);
+            c[0].moveTo(f[0].pos);
         }
         
         const rc = c[0].room.controller;
