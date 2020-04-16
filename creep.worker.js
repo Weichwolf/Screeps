@@ -94,8 +94,10 @@ class WorkerCreep extends BaseCreep {
                         filter: (structure) => {
                             return (structure.structureType == STRUCTURE_SPAWN);
                         }});
+                        
+                    const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == r);                        
                     
-                    if(targets[0]) { 
+                    if(targets[0] && creepCount.length < 4) { 
                         target = targets[0];
                         break; 
                     }                                	        

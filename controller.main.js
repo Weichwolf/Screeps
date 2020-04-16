@@ -9,6 +9,7 @@ class MainController {
     run() {
         for(let r in Game.rooms) {
             const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == r);
+            if(creepCount.length == 0) {continue;};
             let ticks = Game.cpu.getUsed();
             this.creepController.run(Game.rooms[r].name);
             console.log('Controlling ' + creepCount.length 
