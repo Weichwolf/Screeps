@@ -28,6 +28,12 @@ class CreepController {
     }
     
     testClaim(room){
+        const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
+        
+        if(!f[0]) {
+            return;
+        }
+        
         const c = _.filter(Game.creeps, (Creep) => Creep.name == 'CLAIM01');
         
         if(!c[0]) {
@@ -39,8 +45,6 @@ class CreepController {
             
             console.log(s[0].spawnCreep([MOVE,CLAIM],'CLAIM01'));
         }
-        
-        const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
         
         if(f[0]) {
             c[0].moveTo(f[0].pos);
