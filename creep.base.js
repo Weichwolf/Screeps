@@ -76,8 +76,7 @@ class BaseCreep {
     }
 
     static moveToTarget(creep, target) {
-        if(Game.cpu.getUsed() > Game.cpu.tickLimit / 2) {
-            console.log("Used half of CPU already!");
+        if(Game.cpu.getUsed() > Game.cpu.tickLimit / 10) {
             return;
         }
 

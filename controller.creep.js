@@ -15,7 +15,7 @@ class CreepController {
             var creep = Game.creeps[name];
             
             worker.run(creep);
-        }        
+        }
     }
     
     testPos(creep) {
