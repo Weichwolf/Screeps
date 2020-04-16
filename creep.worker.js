@@ -90,8 +90,15 @@ class WorkerCreep extends BaseCreep {
 
             if(!target){
                 for(var r in Game.rooms) {
-        	        var targets = Game.rooms[r].find(FIND_MY_CONSTRUCTION_SITES, {filter: { structureType: STRUCTURE_SPAWN }});
-        	        target = targets[0];
+                    var targets = Game.rooms[r].find(FIND_MY_CONSTRUCTION_SITES,  {
+                        filter: (structure) => {
+                            return (structure.structureType == STRUCTURE_SPAWN);
+                        }});
+                    
+                    if(targets[0]) { 
+                        target = targets[0];
+                        break; 
+                    }                                	        
                 }
             }
             
