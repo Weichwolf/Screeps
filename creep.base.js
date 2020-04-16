@@ -60,7 +60,7 @@ class BaseCreep {
 	        }
 	        
 	        if(creep.harvest(target) == ERR_NOT_IN_RANGE ) {
-                creep.moveTo(target, {visualizePathStyle: {stroke: '#ffaa00'}});
+                this.moveToTarget(creep, target);
 	        }
 	    }   
 	    else {
@@ -73,6 +73,21 @@ class BaseCreep {
             }
 	    }
 	    return true;
+    }
+
+    static moveToTarget(creep, target) {
+        if(!creep.memory.target) {
+            creep.memory.target = target;
+        }
+
+        if(creep.memory.target != target){
+            creep.memory.path = null;
+        }
+
+        if(!creep.memory.path) {
+            creep.memory.path = creep.pos.findPathTo(target);
+        }
+        creep.moveByPath(creep.memory.path);
     }
     
     static findEnergyStructures(room) {

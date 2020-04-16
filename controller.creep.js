@@ -43,7 +43,7 @@ class CreepController {
         const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
         
         if(f[0]) {
-            c[0].moveTo(f[0].pos);
+            this.moveToTarget(c[0], f[0].pos);
         }
         
         const rc = c[0].room.controller;

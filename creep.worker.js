@@ -41,7 +41,7 @@ class WorkerCreep extends BaseCreep {
                 creep.memory.targetIdTransfer = target.id;
                 this.transfer(creep);
             } else {
-                super.changeTask(creep, 'repairer');
+                this.changeTask(creep, 'repairer');
             }
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdTransfer);
@@ -49,7 +49,7 @@ class WorkerCreep extends BaseCreep {
 	        if((!target) || target.energy == target.energyCapacity) {
 	            creep.memory.targetIdTransfer = null;
 	        } else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-	            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+	            super.moveToTarget(creep, target);
 	        } else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_FULL) {
 	            creep.memory.targetIdTransfer = null;
 	        }
@@ -70,7 +70,7 @@ class WorkerCreep extends BaseCreep {
                 creep.memory.targetIdRepairing = target.id;
                 this.repair(creep);
             } else {
-                super.changeTask(creep, 'builder');
+                this.changeTask(creep, 'builder');
             }
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdRepairing);
@@ -79,7 +79,7 @@ class WorkerCreep extends BaseCreep {
 	            creep.memory.targetIdRepairing = null;
 	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.repair(target) == ERR_NOT_IN_RANGE) {
-	            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+	            this.moveToTarget(creep, target);
 	        }
 	    }
     }    
@@ -108,19 +108,19 @@ class WorkerCreep extends BaseCreep {
                 this.build(creep);
             }
             else {
-                super.changeTask(creep, 'upgrader');
+                this.changeTask(creep, 'upgrader');
             }
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdBuilding);
 	        
 	        if(this.isSpawnEvent()) {
 	            creep.memory.targetIdBuilding = null;
-	            super.changeTask(creep, creep.memory.role);
+	            this.changeTask(creep, creep.memory.role);
 	        } else if(target == null || target.progress == target.progressTotal) {
 	            creep.memory.targetIdBuilding = null;
 	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.build(target) == ERR_NOT_IN_RANGE) {
-	            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+	            this.moveToTarget(creep, target);
 	        }
 	    }
     }    
@@ -135,9 +135,9 @@ class WorkerCreep extends BaseCreep {
 	        
 	        if(this.isSpawnEvent()) {
 	            creep.memory.targetIdUpgrade = null;
-	            super.changeTask(creep, creep.memory.role);
+	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
-	            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
+	            this.moveToTarget(creep, target);
 	        }
 	    }
     }    
