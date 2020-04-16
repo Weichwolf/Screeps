@@ -103,37 +103,17 @@ class BaseCreep {
     }
     
     static findEnergySource(creep) {
-        let s = creep.pos.findClosestByRange(FIND_SOURCES, {
+        let s = creep.pos.findClosestByPath(FIND_SOURCES, {
                 filter: (structure) => {
-                    return (structure.energy == structure.energyCapacity);
+                    return (structure.energy >= creep.energyCapacity);
                 }
             });
             
         if(s) {
             return s;
-        }
+        }              
         
-        s = creep.pos.findClosestByRange(FIND_SOURCES, {
-                filter: (structure) => {
-                    return (structure.ticksToRegeneration < 40);
-                }
-            });
-        
-        if(s) {
-            return s;
-        }        
-        
-        s = creep.pos.findClosestByRange(FIND_SOURCES, {
-                filter: (structure) => {
-                    return ((structure.energy / 10) > structure.ticksToRegeneration);
-                }
-            });
-        
-        if(s) {
-            return s;
-        }         
-        
-        s = creep.pos.findClosestByRange(FIND_SOURCES, {
+        s = creep.pos.findClosestByPath(FIND_SOURCES, {
                 filter: (structure) => {
                     return (structure.energy > 0);
                 }
@@ -143,7 +123,7 @@ class BaseCreep {
             return s;
         }
         
-        s = creep.pos.findClosestByRange(FIND_SOURCES);
+        s = creep.pos.findClosestByPath(FIND_SOURCES);
         
         if(s) {
             return s;
