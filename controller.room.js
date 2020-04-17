@@ -4,9 +4,10 @@ class RoomController {
     static run(roomName) {
         this.spawn(roomName);
         this.defend(roomName);
+        this.claim(roomName);
     }
         
-    static testClaim(room){
+    static claim(room){
         const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
         
         if(!f[0]) {
