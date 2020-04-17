@@ -128,6 +128,11 @@ class WorkerCreep extends BaseCreep {
     }    
     
     static upgrade(creep) {
+        if(creep.room.controller == null) {
+            creep.suicide();
+            return;
+        }
+        
 	    if(creep.memory.targetIdUpgrade == null) {
 	        creep.say('⚡ upgrade');
             creep.memory.targetIdUpgrade = creep.room.controller.id;
