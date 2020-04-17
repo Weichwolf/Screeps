@@ -4,7 +4,7 @@ class RoomController {
     static run(roomName) {
         this.spawn(roomName);
         this.defend(roomName);
-        this.claim(roomName);
+        this.claim('E42S6');
     }
         
     static claim(room){
@@ -22,6 +22,8 @@ class RoomController {
             if(s[0].spawning) {
                 return;
             }            
+
+            s[0].spawnCreep([MOVE,MOVE,MOVE,CLAIM],'CLAIM01');
         }
         
         if(f[0]) {
