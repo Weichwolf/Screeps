@@ -71,7 +71,7 @@ class BaseCreep {
     }
 
     static moveToTarget(creep, target) {
-        if(Game.cpu.getUsed() > Game.cpu.limit) {
+        if(Game.cpu.getUsed() > Game.cpu.bucket / 100) {
             return;
         }
 
