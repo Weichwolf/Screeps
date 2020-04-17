@@ -1,7 +1,4 @@
-class BaseCreep {
-    constructor() {
-    }    
-    
+class BaseCreep {    
     static spawn(room, body, name, opts) {
         let s = _.filter(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room);  
         

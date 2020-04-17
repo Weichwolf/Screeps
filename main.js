@@ -1,10 +1,6 @@
-const MainController = require('controller.main');
-
-global.TASK_TRANSFER = 1;
-
+const mainController = require('controller.main');
 
 module.exports.loop = function () {
-    let mainController = new MainController();
     mainController.run();
     mainController.cleanup();
 }
