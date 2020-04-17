@@ -20,9 +20,7 @@ class RoomController {
             
             if(s[0].spawning) {
                 return;
-            }
-            
-            console.log(s[0].spawnCreep([MOVE,CLAIM],'CLAIM01'));
+            }            
         }
         
         if(f[0]) {
@@ -46,9 +44,7 @@ class RoomController {
         if(!targets.length) {
             this.repair(roomName);
             return;
-        }
-        
-        console.log('FIND_HOSTILE_CREEPS: ' + targets.length);
+        }        
         
         const towers = Game.rooms[roomName].find(FIND_STRUCTURES, {
                     filter: (object) => {

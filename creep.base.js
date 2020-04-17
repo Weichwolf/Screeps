@@ -24,9 +24,7 @@ class BaseCreep {
             b = b.concat(body);
         }
 
-        if(s[0].spawnCreep(b, newName, {memory: {role: name}, energyStructures: struct}) == OK) {
-            console.log('Spawning new ' + name + ' ' + newName + ' in room ' + room);
-        }
+        s[0].spawnCreep(b, newName, {memory: {role: name}, energyStructures: struct});            
     }
     
     static harvest(creep) {
@@ -136,11 +134,7 @@ class BaseCreep {
     static changeTask(creep, task) {
         if(creep.memory.task == task) {
             return;
-        }
-        
-        if(creep.memory.role != task) {
-            console.log('Changing task of ' + creep.name + ' to ' + task);
-        }
+        }        
         
         creep.memory.task = task;
     }
