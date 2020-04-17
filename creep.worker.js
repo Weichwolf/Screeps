@@ -115,10 +115,7 @@ class WorkerCreep extends BaseCreep {
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdBuilding);
 	        
-	        if(this.isSpawnEvent()) {
-	            creep.memory.targetIdBuilding = null;
-	            this.changeTask(creep, creep.memory.role);
-	        } else if(target == null || target.progress == target.progressTotal) {
+	        if(target == null || target.progress == target.progressTotal) {
 	            creep.memory.targetIdBuilding = null;
 	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.build(target) == ERR_NOT_IN_RANGE) {
@@ -140,10 +137,7 @@ class WorkerCreep extends BaseCreep {
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdUpgrade);
 	        
-	        if(this.isSpawnEvent()) {
-	            creep.memory.targetIdUpgrade = null;
-	            this.changeTask(creep, creep.memory.role);
-	        } else if(creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
+	        if(creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
 	            this.moveToTarget(creep, target);
 	        }
 	    }
@@ -155,17 +149,6 @@ class WorkerCreep extends BaseCreep {
     
     static getRepairTargets() {
         return _.map(Game.creeps, function(o) {return o.memory.targetIdRepairing});
-    }    
-    
-    static isSpawnEvent() {
-        if(!Game.spawns['Spawn1'].spawning)
-        {
-            return false;
-        }
-            
-        let t = Game.spawns['Spawn1'].spawning.needTime - Game.spawns['Spawn1'].spawning.remainingTime;
-        
-        return (t < 10);
-    }
+    }        
 }
 module.exports = WorkerCreep;
