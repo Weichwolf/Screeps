@@ -1,55 +1,64 @@
 const worker = require('creep.worker');
 
-class RoomController {   
-    static run(roomName) {
-        this.spawn(roomName);
-        this.defend(roomName);
-        this.claim('E42S6');
-    }
-        
-    static claim(room){
-        const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
-        
-        if(!f[0]) {
-            return;
-        }
-        
-        const c = _.filter(Game.creeps, (Creep) => Creep.name == 'CLAIM01');
-        
-        if(!c[0]) {
-            const s = _.filter(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room);        
-            
-            if(s[0].spawning) {
-                return;
-            }            
 
-            s[0].spawnCreep([MOVE,MOVE,MOVE,CLAIM],'CLAIM01');
-        }
-        
-        if(f[0]) {
-            c[0].moveTo(f[0].pos);
-        }
-        
-        const rc = c[0].room.controller;
-        
-        if(rc) {
-            c[0].claimController(rc);
-        }
+class RoomController {   
+    static run(room) {
+        this.update(room);
+        this.spawn(room);
+        this.defend(room);
+        this.claim(room);
     }
-    
-    static defend(roomName) {
-        const targets = Game.rooms[roomName].find(FIND_HOSTILE_CREEPS/*, {
-                filter: function(object) {
-                    return object.getActiveBodyparts(ATTACK) > 0;
+
+    static update(room) {
+        const sources = room.find(FIND_SOURCES);
+
+        if(!room.memory.stats) {                   
+            const stats = {
+                'ticks' : 0,
+                'sources' : []            
+            };            
+
+            for(let i in sources) {
+                const source = {
+                    'id' : sources[i].id,
+                    'pos' : sources[i].pos,
+                    'workers' : [],
+                    'assigned' : 1,
+                    'avaiable' : 0,
+                    'harvested' : 0,
+                    'rate' : 0
+                };
+                stats.sources.push(source);            
+            }                                 
+            room.memory.stats = stats;
+        } else {
+            room.memory.stats.ticks += 1;
+
+            for(let s in room.memory.stats.sources) {
+                if(room.memory.stats.sources[s].avaiable > sources[s].energy) {
+                    room.memory.stats.sources[s].harvested += room.memory.stats.sources[s].avaiable - sources[s].energy;   
+                }      
+
+                room.memory.stats.sources[s].avaiable = sources[s].energy;                
+
+                if(sources[s].energy > 0) {
+                    room.memory.stats.sources[s].rate = room.memory.stats.sources[s].harvested / room.memory.stats.ticks;
                 }
-            }*/);
+            }            
+        }
+        
+        console.log(JSON.stringify(room.memory.stats));
+    }
+            
+    static defend(room) {
+        const targets = room.find(FIND_HOSTILE_CREEPS);
             
         if(!targets.length) {
-            this.repair(roomName);
+            this.repair(room);
             return;
         }        
         
-        const towers = Game.rooms[roomName].find(FIND_STRUCTURES, {
+        const towers = room.find(FIND_STRUCTURES, {
                     filter: (object) => {
                         return (object.structureType == STRUCTURE_TOWER) &&
                             (object.energy > 0);
@@ -65,8 +74,8 @@ class RoomController {
         }
     }
     
-    static repair(roomName) {
-        const targets = Game.rooms[roomName].find(FIND_STRUCTURES, {
+    static repair(room) {
+        const targets = room.find(FIND_STRUCTURES, {
             filter: (structure) => {
                 return (structure.hits < structure.hitsMax);
             }
@@ -76,7 +85,7 @@ class RoomController {
             return;
         }
         
-        const towers = Game.rooms[roomName].find(FIND_STRUCTURES, {
+        const towers = room.find(FIND_STRUCTURES, {
                     filter: (object) => {
                         return (object.structureType == STRUCTURE_TOWER) &&
                             (object.energy > 0);
@@ -90,14 +99,46 @@ class RoomController {
         towers[0].repair(targets[0]);
     }    
     
-    static spawn(roomName) {
-        const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == roomName);
-        const sources = Game.rooms[roomName].find(FIND_SOURCES);
-        
+    static spawn(room) {
+        const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == room);
+        const sources = room.find(FIND_SOURCES);
+
         if(creepCount.length < sources.length * 4) {
-            worker.spawn(roomName, 'harvester');
+            worker.spawn(room, 'harvester');
         }        
     }
+
+    static claim(room){
+        const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
+        
+        if(!f[0]) {
+            return;
+        }
+        
+        const c = _.filter(Game.creeps, (Creep) => Creep.name == 'CLAIM01');
+        
+        if(!c[0]) {
+            const s = _.filter(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);        
+            
+            if(s[0].spawning) {
+                return;
+            }            
+
+            s[0].spawnCreep([MOVE,CLAIM],'CLAIM01');
+
+            return;
+        }
+        
+        if(f[0]) {
+            c[0].moveTo(f[0].pos);
+        }
+        
+        const rc = c[0].room.controller;
+        
+        if(rc) {
+            c[0].claimController(rc);
+        }
+    }    
   
     static cleanup() {
     }

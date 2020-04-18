@@ -1,6 +1,6 @@
 class BaseCreep {    
     static spawn(room, body, name, opts) {
-        let s = _.filter(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room);  
+        let s = _.filter(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
         
         if(!s[0]) {
             return;
@@ -10,13 +10,13 @@ class BaseCreep {
            return;
         }
         
-        let e = Game.rooms[room].energyAvailable;            
+        let e = Game.rooms[room.name].energyAvailable;            
         let n = Math.floor(e / 200);
         
         if(n > 8) {n = 8}
 
         let newName = name + Game.time;
-        let struct = this.findEnergyStructures(room);
+        let struct = this.findEnergyStructures(room.name);
 
         let b = body;
         
