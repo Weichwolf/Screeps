@@ -130,6 +130,11 @@ class RoomController {
         }
 
         const source = this.getSource(room);
+
+        if(!source) {
+            return;
+        }
+
         const roundtripcost = source.roundtrip + room.memory.stats.spawnpathcost;
 
         spawn.spawnCreep(b, newName, {memory: {task: name, targetIdHarvest: source.id, roundtrip: roundtripcost}, energyStructures: struct});            
@@ -144,7 +149,7 @@ class RoomController {
             }
         }    
         
-        return room.memory.stats.sources[i];
+        return null;
     }    
 
     static getAssignedCreepCount(sourceId) {
