@@ -7,12 +7,15 @@ class RoomController {
     }
 
     static update(room) {      
-        if(!room.memory.stats) {                   
+        if(!room.memory.stats) {               
             const sources = room.find(FIND_SOURCES);
+            let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
+            let path = PathFinder.search(spawn.pos, { pos: room.controller.pos, range: 1 });
 
             const stats = {
                 'ticks' : 0,
                 'workers' : 0,
+                'spawnpathcost' : path.cost,
                 'sources' : []            
             };            
 
@@ -23,7 +26,7 @@ class RoomController {
                     'id' : sources[i].id,
                     'pos' : sources[i].pos,
                     'workers' : 4,
-                    'roundtrip' : path.cost * 2
+                    'roundtripcost' : path.cost * 2
                 };
                 stats.sources.push(source);            
             }                                 
@@ -127,8 +130,9 @@ class RoomController {
         }
 
         const source = this.getSource(room);
+        const roundtripcost = source.roundtrip + room.memory.stats.spawnpathcost;
 
-        spawn.spawnCreep(b, newName, {memory: {task: name, targetIdHarvest: source.id, roundtrip: source.roundtrip}, energyStructures: struct});            
+        spawn.spawnCreep(b, newName, {memory: {task: name, targetIdHarvest: source.id, roundtrip: roundtripcost}, energyStructures: struct});            
     }
 
     static getSource(room) {
