@@ -234,13 +234,16 @@ class WorkerCreep extends BaseCreep {
             this.upgrade(creep);
 	    } else {
 	        var target = Game.getObjectById(creep.memory.targetIdUpgrade);
-	        
+            var energy = creep.store.getUsedCapacity(RESOURCE_ENERGY);
+            
 	        if(creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
 	            this.moveToTarget(creep, target);
 	        } else if(creep.upgradeController(target) == ERR_NOT_ENOUGH_RESOURCES) {
                 creep.memory.targetIdUpgrade = null;
                 this.changeTask(creep, 'recycle');
             }
+
+            creep.memory.upgradeEnergy += energy - creep.store.getUsedCapacity(RESOURCE_ENERGY);
 	    }
     }                
 }
