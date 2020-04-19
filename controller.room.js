@@ -140,7 +140,7 @@ class RoomController {
             }
         }    
         
-        return creep.room.memory.stats.sources[i];
+        return room.memory.stats.sources[i];
     }    
 
     static getAssignedCreepCount(sourceId) {
