@@ -16,9 +16,9 @@ class MainController {
 
         roomController.cleanup();
 
-        // console.log('Controlling ' + _.size(Game.rooms)
-        //     + ' rooms using ' +  (Game.cpu.getUsed() - startTicks).toFixed(2) 
-        //     + ' ticks from ' +  Game.cpu.limit + '|' + Game.cpu.tickLimit + '|' + Game.cpu.bucket);             
+        console.log('Controlling ' + _.size(Game.rooms)
+            + ' rooms using ' +  (Game.cpu.getUsed() - startTicks).toFixed(2) 
+            + ' ticks from ' +  Game.cpu.limit + '|' + Game.cpu.tickLimit + '|' + Game.cpu.bucket);             
     }
 
     static runCreepController() {
@@ -30,9 +30,9 @@ class MainController {
 
         creepController.cleanup();
 
-        // console.log('Controlling ' + _.size(Game.creeps) 
-        //     + ' creeps using ' + (Game.cpu.getUsed() - startTicks).toFixed(2) 
-        //     + ' ticks from ' +  Game.cpu.limit + '|' + Game.cpu.tickLimit + '|' + Game.cpu.bucket);             
+        console.log('Controlling ' + _.size(Game.creeps) 
+            + ' creeps using ' + (Game.cpu.getUsed() - startTicks).toFixed(2) 
+            + ' ticks from ' +  Game.cpu.limit + '|' + Game.cpu.tickLimit + '|' + Game.cpu.bucket);             
     }    
     
     static cleanup() {

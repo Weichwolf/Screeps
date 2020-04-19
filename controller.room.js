@@ -1,6 +1,3 @@
-const worker = require('creep.worker');
-
-
 class RoomController {   
     static run(room) {
         this.update(room);
@@ -9,21 +6,24 @@ class RoomController {
         this.claim(room);
     }
 
-    static update(room) {
-        const sources = room.find(FIND_SOURCES);
-
+    static update(room) {      
         if(!room.memory.stats) {                   
+            const sources = room.find(FIND_SOURCES);
+
             const stats = {
                 'ticks' : 0,
+                'workers' : 0,
                 'sources' : []            
             };            
 
             for(let i in sources) {
+                let path = PathFinder.search(sources[i].pos, { pos: room.controller.pos, range: 1 });
+
                 const source = {
                     'id' : sources[i].id,
                     'pos' : sources[i].pos,
-                    'workers' : [],
-                    'assigned' : 1,
+                    'workers' : 4,
+                    'roundtrip' : path.cost * 2,
                     'avaiable' : 0,
                     'harvested' : 0,
                     'rate' : 0
@@ -32,22 +32,26 @@ class RoomController {
             }                                 
             room.memory.stats = stats;
         } else {
-            room.memory.stats.ticks += 1;
+            const sources = room.find(FIND_SOURCES);
 
-            for(let s in room.memory.stats.sources) {
-                if(room.memory.stats.sources[s].avaiable > sources[s].energy) {
-                    room.memory.stats.sources[s].harvested += room.memory.stats.sources[s].avaiable - sources[s].energy;   
+            room.memory.stats.ticks += 1;
+            room.memory.stats.workers = 0;
+
+            for(let i in room.memory.stats.sources) {
+                let source = _.find(sources, function(source) { return source.id == sources[i].id; });
+
+                if(room.memory.stats.sources[i].avaiable > source.energy) {
+                    room.memory.stats.sources[i].harvested += room.memory.stats.sources[i].avaiable - source.energy;   
                 }      
 
-                room.memory.stats.sources[s].avaiable = sources[s].energy;                
+                room.memory.stats.sources[i].avaiable = source.energy;   
+                room.memory.stats.workers += room.memory.stats.sources[i].workers;
 
-                if(sources[s].energy > 0) {
-                    room.memory.stats.sources[s].rate = room.memory.stats.sources[s].harvested / room.memory.stats.ticks;
+                if(sources[i].energy > 0) {
+                    room.memory.stats.sources[i].rate = room.memory.stats.sources[i].harvested / room.memory.stats.ticks;
                 }
             }            
-        }
-        
-        console.log(JSON.stringify(room.memory.stats));
+        }        
     }
             
     static defend(room) {
@@ -100,13 +104,68 @@ class RoomController {
     }    
     
     static spawn(room) {
-        const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == room);
-        const sources = room.find(FIND_SOURCES);
+        const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == room.name);
 
-        if(creepCount.length < sources.length * 4) {
-            worker.spawn(room, 'harvester');
+        if(creepCount.length < room.memory.stats.workers) {
+            this.spawn2(room, 'pickup');
         }        
     }
+
+    static spawn2(room, role) {
+        this.spawn3(room, [WORK,CARRY,MOVE], role);
+    }
+
+    static spawn3(room, body, name) {
+        let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
+        
+        if(!spawn) {
+            return;
+        }
+        
+        if((spawn.spawning || (spawn.energy < 200)) && (Object.keys(Game.creeps).length > 1)) {
+           return;
+        }
+        
+        let e = Game.rooms[room.name].energyAvailable;            
+        let n = Math.floor(e / 200);
+        
+        if(n > 8) {n = 8}
+
+        let newName = 'creep' + Game.time;
+        let struct = this.findEnergyStructures(room.name);
+
+        let b = body;
+        
+        for (let i = 1; i < n; i++) {
+            b = b.concat(body);
+        }
+
+        const source = this.getSource(room);
+
+        spawn.spawnCreep(b, newName, {memory: {task: name, targetIdHarvest: source.id, roundtrip: source.roundtrip}, energyStructures: struct});            
+    }
+
+    static getSource(room) {
+        for(let i in room.memory.stats.sources) {
+            const assigned = this.getAssignedCreepCount(room.memory.stats.sources[i].id);
+            
+            if(assigned < room.memory.stats.sources[i].workers) {
+                return room.memory.stats.sources[i];
+            }
+        }    
+        
+        return creep.room.memory.stats.sources[i];
+    }    
+
+    static getAssignedCreepCount(sourceId) {
+        let assigned = _.countBy(Game.creeps, function(o) {if(o.memory.targetIdHarvest == sourceId){return "count";}});
+        
+        if(!assigned.count) {
+            return 0;
+        }
+
+        return assigned.count;
+    }    
 
     static claim(room){
         const f = _.filter(Game.flags, (Flag) => Flag.name == 'CLAIM01');
@@ -139,7 +198,19 @@ class RoomController {
             c[0].claimController(rc);
         }
     }    
-  
+
+    static findEnergyStructures(room) {
+        let s = Game.rooms[room].find(FIND_STRUCTURES, {
+               filter: (structure) => {
+                   return (structure.structureType == STRUCTURE_EXTENSION 
+                       || structure.structureType == STRUCTURE_SPAWN) &&
+                       structure.energy > 0;
+               }
+           });
+       
+       return s;
+    }  
+
     static cleanup() {
     }
 }

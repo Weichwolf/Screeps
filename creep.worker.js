@@ -1,18 +1,19 @@
 const BaseCreep = require('creep.base');
 
-class WorkerCreep extends BaseCreep {
-    static spawn(room, role) {
-        super.spawn(room, [WORK,CARRY,MOVE], role);
-    }
-    
+class WorkerCreep extends BaseCreep {   
     static run(creep) {
-        if(super.harvest(creep)) {
-            return;
-        };
-        
-        if(creep.memory.task == 'harvester') {
-            this.transfer(creep);
+        if(creep.memory.task == 'recycle') {
+            this.recycle(creep);
         } 
+        if(creep.memory.task == 'pickup') {
+            this.pickup(creep); 
+        }           
+        if(creep.memory.task == 'harvest') {
+            this.harvest(creep);
+        } 
+        if(creep.memory.task == 'transfer') {
+            this.transfer(creep);
+        }      
         if(creep.memory.task == 'repairer') {
             this.repair(creep); 
         }
@@ -24,6 +25,101 @@ class WorkerCreep extends BaseCreep {
         }  
     }
     
+    static recycle(creep) {
+        if(creep.ticksToLive > creep.memory.roundtrip) {
+            this.changeTask(creep, 'pickup');
+            return;
+        }
+
+        if(creep.store.getUsedCapacity([RESOURCE_ENERGY]) > 0) {
+            this.changeTask(creep, 'transfer');
+            return;
+        }
+
+	    if(creep.memory.targetIdRecycle == null) {
+            let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == creep.room.name);      
+           
+            if(spawn) {
+                creep.say('♻️ recycle');
+                creep.memory.targetIdRecycle = spawn.id;
+                this.recycle(creep);
+            } else {
+                creep.say('💀 suicide');
+                creep.suicide();
+            }
+       } else {
+            var spawn = Game.getObjectById(creep.memory.targetIdRecycle);
+            
+            if(!spawn) {
+                creep.memory.targetIdRecycle = null;
+            } else if(spawn.recycleCreep(creep) == ERR_NOT_IN_RANGE) {
+                super.moveToTarget(creep, spawn.pos);
+            }
+       }        
+    }
+
+    static pickup(creep) {
+	    if(creep.memory.targetIdPickup == null) {
+	         const target = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+                    filter: (resource) => {
+                        return !this.getPickupTargets().includes(resource.id);
+                    }
+            });
+            
+            if(target) {
+                creep.say('⚡ pickup');
+                creep.memory.targetIdPickup = target.id;
+                this.pickup(creep);
+            } else {
+                this.changeTask(creep, 'harvest');
+            }
+	    } else {
+	        var target = Game.getObjectById(creep.memory.targetIdPickup);
+	        
+	        if((!target) || target.amount == 0) {
+                creep.memory.targetIdPickup = null;
+	        } else if(creep.pickup(target) == ERR_NOT_IN_RANGE) {
+	            super.moveToTarget(creep, target);
+	        } else if(creep.pickup(target) == ERR_FULL) {
+                creep.memory.targetIdPickup = null;
+                this.changeTask(creep, 'transfer');
+	        }
+	    }
+    }     
+
+    static harvest(creep) {             
+        if(creep.carry.energy == creep.carryCapacity) {
+            this.changeTask(creep, 'transfer');
+            return;
+        }
+        
+	    if(creep.memory.targetIdHarvest != null) {
+	        var target = Game.getObjectById(creep.memory.targetIdHarvest);
+	        
+	        if((creep.harvest(target) == ERR_NOT_ENOUGH_RESOURCES) && (creep.carry.energy > 0)) {
+                this.changeTask(creep, 'transfer');
+                return;
+	        }
+	        
+	        if(creep.harvest(target) == ERR_NOT_ENOUGH_RESOURCES) {
+                this.changeTask(creep, 'recycle');
+                return;
+	        }
+	        
+	        if(creep.harvest(target) == ERR_NOT_IN_RANGE ) {
+                this.moveToTarget(creep, target);
+	        }
+	    }   
+	    else {
+	        let sourceID = this.findEnergySource(creep);
+            if(sourceID) {
+                creep.say('🔄 harvest');
+                creep.memory.targetIdHarvest = sourceID;
+	            this.harvest(creep);
+            }
+	    }
+    }    
+
     static transfer(creep) {
 	    if(creep.memory.targetIdTransfer == null) {
 	         const target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -52,9 +148,12 @@ class WorkerCreep extends BaseCreep {
 	            super.moveToTarget(creep, target);
 	        } else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_FULL) {
 	            creep.memory.targetIdTransfer = null;
-	        }
+	        } else if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_ENOUGH_RESOURCES) {
+                creep.memory.targetIdTransfer = null;
+                this.changeTask(creep, 'recycle');
+            }
 	    }
-    }
+    }   
     
     static repair(creep) {
 	    if(creep.memory.targetIdRepairing == null) {
@@ -77,10 +176,12 @@ class WorkerCreep extends BaseCreep {
 	        
 	        if(target == null || target.hits == target.hitsMax) {
 	            creep.memory.targetIdRepairing = null;
-	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.repair(target) == ERR_NOT_IN_RANGE) {
 	            this.moveToTarget(creep, target);
-	        }
+	        } else if(creep.repair(target) == ERR_NOT_ENOUGH_RESOURCES) {
+                creep.memory.targetIdRepairing = null;
+                this.changeTask(creep, 'recycle');
+            }
 	    }
     }    
     
@@ -117,10 +218,12 @@ class WorkerCreep extends BaseCreep {
 	        
 	        if(target == null || target.progress == target.progressTotal) {
 	            creep.memory.targetIdBuilding = null;
-	            this.changeTask(creep, creep.memory.role);
 	        } else if(creep.build(target) == ERR_NOT_IN_RANGE) {
 	            this.moveToTarget(creep, target);
-	        }
+	        } else if(creep.build(target) == ERR_NOT_ENOUGH_RESOURCES) {
+                creep.memory.targetIdBuilding = null;
+                this.changeTask(creep, 'recycle');
+            }
 	    }
     }    
     
@@ -139,16 +242,11 @@ class WorkerCreep extends BaseCreep {
 	        
 	        if(creep.upgradeController(target) == ERR_NOT_IN_RANGE) {
 	            this.moveToTarget(creep, target);
-	        }
+	        } else if(creep.upgradeController(target) == ERR_NOT_ENOUGH_RESOURCES) {
+                creep.memory.targetIdUpgrade = null;
+                this.changeTask(creep, 'recycle');
+            }
 	    }
-    }    
-    
-    static getTransferTargets() {
-        return _.map(Game.creeps, function(o) {return o.memory.targetIdTransfer});
-    }
-    
-    static getRepairTargets() {
-        return _.map(Game.creeps, function(o) {return o.memory.targetIdRepairing});
-    }        
+    }                
 }
 module.exports = WorkerCreep;
