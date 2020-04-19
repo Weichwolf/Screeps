@@ -23,10 +23,7 @@ class RoomController {
                     'id' : sources[i].id,
                     'pos' : sources[i].pos,
                     'workers' : 4,
-                    'roundtrip' : path.cost * 2,
-                    'avaiable' : 0,
-                    'harvested' : 0,
-                    'rate' : 0
+                    'roundtrip' : path.cost * 2
                 };
                 stats.sources.push(source);            
             }                                 
@@ -38,18 +35,7 @@ class RoomController {
             room.memory.stats.workers = 0;
 
             for(let i in room.memory.stats.sources) {
-                let source = _.find(sources, function(source) { return source.id == sources[i].id; });
-
-                if(room.memory.stats.sources[i].avaiable > source.energy) {
-                    room.memory.stats.sources[i].harvested += room.memory.stats.sources[i].avaiable - source.energy;   
-                }      
-
-                room.memory.stats.sources[i].avaiable = source.energy;   
                 room.memory.stats.workers += room.memory.stats.sources[i].workers;
-
-                if(sources[i].energy > 0) {
-                    room.memory.stats.sources[i].rate = room.memory.stats.sources[i].harvested / room.memory.stats.ticks;
-                }
             }            
         }        
     }
@@ -122,7 +108,7 @@ class RoomController {
             return;
         }
         
-        if((spawn.spawning || (spawn.energy < 200)) && (Object.keys(Game.creeps).length > 1)) {
+        if((spawn.spawning || (room.energyAvailable < 200)) && (Object.keys(Game.creeps).length > 1)) {
            return;
         }
         
