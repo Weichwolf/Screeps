@@ -111,12 +111,7 @@ class WorkerCreep extends BaseCreep {
 	        }
 	    }   
 	    else {
-	        let sourceID = this.findEnergySource(creep);
-            if(sourceID) {
-                creep.say('🔄 harvest');
-                creep.memory.targetIdHarvest = sourceID;
-	            this.harvest(creep);
-            }
+	        creep.suicide();
 	    }
     }    
 
