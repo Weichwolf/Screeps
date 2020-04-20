@@ -241,35 +241,7 @@ class WorkerCreep extends BaseCreep {
 	        } else if(creep.upgradeController(target) == ERR_NOT_ENOUGH_RESOURCES) {
                 creep.memory.targetIdUpgrade = null;
                 this.changeTask(creep, 'recycle');
-            }
-
-            if(!creep.memory.usedCapacityLastTick) {
-                creep.memory.usedCapacityLastTick = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-            }
-            
-            creep.memory.upgradeEnergy += creep.memory.usedCapacityLastTick - creep.store.getUsedCapacity(RESOURCE_ENERGY);
-            
-            if(!creep.room.memory.s) {
-                creep.room.memory.s = new Object();                
-            } else if (!creep.room.memory.s[creep.memory.targetIdHarvest]) {
-                creep.room.memory.s[creep.memory.targetIdHarvest] = {'upgradeEnergy' : creep.memory.upgradeEnergy};
-            } else {
-                creep.room.memory.s[creep.memory.targetIdHarvest].upgradeEnergy += creep.memory.usedCapacityLastTick - creep.store.getUsedCapacity(RESOURCE_ENERGY);
-                console.log(JSON.stringify(creep.room.memory.s));
-            }
-
-            if(!creep.room.memory.b) {
-                creep.room.memory.b = new Object();                
-            } else if (!creep.room.memory.b[creep.body.type]) {
-                creep.room.memory.b[creep.body.type] = {'upgradeEnergy' : creep.memory.upgradeEnergy};
-            } else {
-                creep.room.memory.b[creep.body.type].upgradeEnergy += creep.memory.usedCapacityLastTick - creep.store.getUsedCapacity(RESOURCE_ENERGY);
-                console.log(JSON.stringify(creep.room.memory.b));
-                console.log(JSON.stringify(creep.body));
-            }
-
-            //https://stackoverflow.com/questions/27101080/screeps-calculate-build-cost-of-body
-            creep.memory.usedCapacityLastTick = creep.store.getUsedCapacity(RESOURCE_ENERGY); 
+            }            
 	    }
     }                
 }
