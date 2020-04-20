@@ -49,11 +49,7 @@ class CreepController {
         }        
 
         if(!Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers]) {
-            Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers] = {bodystats : {}, upgradeEnergy : 0};
-        }
-
-        if(Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers].upgradeEnergy = 0) {
-            Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers].upgradeEnergy = memory.upgradeEnergy;
+            Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers] = {bodystats : {}, upgradeEnergy : memory.upgradeEnergy};
         }
 
         let workerAverage = Memory.rooms[memory.room].sources[memory.targetIdHarvest].workerstats[memory.workers].upgradeEnergy;
