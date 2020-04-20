@@ -26,7 +26,7 @@ class WorkerCreep extends BaseCreep {
     }
     
     static recycle(creep) {
-        if(creep.ticksToLive > creep.memory.roundtrip) {
+        if(creep.ticksToLive > creep.memory.ticksToRecycle) {
             this.changeTask(creep, 'pickup');
             return;
         }
@@ -239,6 +239,7 @@ class WorkerCreep extends BaseCreep {
 	            this.moveToTarget(creep, target);
 	        } else if(creep.upgradeController(target) == ERR_NOT_ENOUGH_RESOURCES) {
                 creep.memory.targetIdUpgrade = null;
+                creep.memory.usedCapacityLastTick = null;
                 this.changeTask(creep, 'recycle');
             } else if(creep.upgradeController(target) == OK) {
                 let energy = creep.store.getUsedCapacity(RESOURCE_ENERGY);

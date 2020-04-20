@@ -7,39 +7,35 @@ class RoomController {
     }
 
     static update(room) {      
+        //delete room.memory.stats;
+        //delete room.memory.sources;
+
         if(!room.memory.stats) {               
             const sources = room.find(FIND_SOURCES);
             let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
             let path = PathFinder.search(spawn.pos, { pos: room.controller.pos, range: 1 });
 
-            const stats = {
-                'ticks' : 0,
-                'workers' : 0,
-                'spawnpathcost' : path.cost,
-                'sources' : []            
+            room.memory.stats = {
+                'reschedule' : global.RESCHEDULE_TICKS,
+                'spawnpathcost' : path.cost
             };            
+
+            room.memory.sources = {};
 
             for(let i in sources) {
                 let path = PathFinder.search(sources[i].pos, { pos: room.controller.pos, range: 1 });
 
                 const source = {
-                    'id' : sources[i].id,
                     'pos' : sources[i].pos,
-                    'workers' : 4,
+                    'workers' : global.WORKERS_SOURCE,
+                    'body' : global.WORKER_BODY,
                     'roundtripcost' : path.cost * 2
                 };
-                stats.sources.push(source);            
-            }                                 
-            room.memory.stats = stats;
+
+                room.memory.sources[sources[i].id] = source;            
+            }                         
         } else {
-            const sources = room.find(FIND_SOURCES);
-
-            room.memory.stats.ticks += 1;
-            room.memory.stats.workers = 0;
-
-            for(let i in room.memory.stats.sources) {
-                room.memory.stats.workers += room.memory.stats.sources[i].workers;
-            }            
+            room.memory.stats.reschedule -= 1;      
         }        
     }
             
@@ -92,19 +88,15 @@ class RoomController {
         towers[0].repair(targets[0]);
     }    
     
-    static spawn(room) {
-        const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == room.name);
-
-        if(creepCount.length < room.memory.stats.workers) {
-            this.spawn2(room, 'pickup');
+    static spawn(room) {                     
+        for(let i in room.memory.sources) {
+            if(this.getAssignedCreepCount(i) < room.memory.sources[i].workers) {
+                this.spawnCreep(room, room.memory.sources[i].body, 'pickup', i);
+            }
         }        
     }
 
-    static spawn2(room, role) {
-        this.spawn3(room, [WORK,CARRY,MOVE], role);
-    }
-
-    static spawn3(room, body, name) {
+    static spawnCreep(room, body, name, sourceId) {
         let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
         
         if(!spawn) {
@@ -122,35 +114,40 @@ class RoomController {
 
         let newName = 'creep' + Game.time;
         let struct = this.findEnergyStructures(room.name);
+      
+        const mutated = this.mutateBody(body);
+        const roundtripcost = room.memory.sources[sourceId].roundtripcost + room.memory.stats.spawnpathcost;
 
-        let b = body;
-        
-        for (let i = 1; i < n; i++) {
-            b = b.concat(body);
+        const memory = {
+            room: room.name,
+            workers: room.memory.sources[sourceId].workers,
+            task: name, 
+            body: mutated, 
+            targetIdHarvest: sourceId, 
+            ticksToRecycle: roundtripcost            
         }
 
-        const source = this.getSource(room);
-
-        if(!source) {
-            return;
-        }
-
-        const roundtripcost = source.roundtrip + room.memory.stats.spawnpathcost;
-
-        spawn.spawnCreep(b, newName, {memory: {task: name, targetIdHarvest: source.id, roundtrip: roundtripcost}, energyStructures: struct});            
+        spawn.spawnCreep(mutated, newName, {memory: memory, energyStructures: struct});            
     }
 
-    static getSource(room) {
-        for(let i in room.memory.stats.sources) {
-            const assigned = this.getAssignedCreepCount(room.memory.stats.sources[i].id);
-            
-            if(assigned < room.memory.stats.sources[i].workers) {
-                return room.memory.stats.sources[i];
-            }
-        }    
-        
-        return null;
-    }    
+    static mutateBody(body) {
+        const add = Math.round(Math.random());
+        var mutated;
+
+        if(add){
+            mutated = body.concat(_.sample(body));
+        } else {
+            mutated = _.shuffle(body);
+            mutated = _.drop(mutated);
+        }
+
+        if(!body.every(v => mutated.includes(v))){
+            return this.mutateBodyTest(body);
+        }
+
+        const ordered = _.sortBy(mutated);        
+        return ordered;
+    }
 
     static getAssignedCreepCount(sourceId) {
         let assigned = _.countBy(Game.creeps, function(o) {if(o.memory.targetIdHarvest == sourceId){return "count";}});
