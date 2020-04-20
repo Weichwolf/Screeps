@@ -131,10 +131,13 @@ class RoomController {
     }
 
     static mutateBody(body) {
-        const add = Math.round(Math.random());
+        if(Math.round(Math.random()) == 0) {
+            return body;
+        }
+
         var mutated;
 
-        if(add){
+        if(Math.round(Math.random()) == 0){
             mutated = body.concat(_.sample(body));
         } else {
             mutated = _.shuffle(body);
