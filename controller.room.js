@@ -142,7 +142,7 @@ class RoomController {
         }
 
         if(!body.every(v => mutated.includes(v))){
-            return this.mutateBodyTest(body);
+            return this.mutateBody(body);
         }
 
         const ordered = _.sortBy(mutated);        
