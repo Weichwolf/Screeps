@@ -9,7 +9,12 @@ class RoomController {
     static update(room) {      
         if(!room.memory.stats) {               
             const sources = room.find(FIND_SOURCES);
-            let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name);  
+            let spawn = _.find(Game.spawns, (StructureSpawn) => StructureSpawn.room.name == room.name); 
+            
+            if(!spawn) {
+                return;
+            }
+            
             let path = PathFinder.search(spawn.pos, { pos: room.controller.pos, range: 1 });
 
             const stats = {
@@ -93,6 +98,10 @@ class RoomController {
     }    
     
     static spawn(room) {
+        if(!room.memory.stats) {
+            return;
+        }
+        
         const creepCount = _.filter(Game.creeps, (Creep) => Creep.room.name == room.name);
 
         if(creepCount.length < room.memory.stats.workers) {
